@@ -15,6 +15,7 @@
   shell: systemctl --version | head -n 1 | cut -d " " -f 2
   register: systemd_version
   when: not is_atomic
+  check_mode: no
   changed_when: false
 
 - name: Write docker.service systemd file

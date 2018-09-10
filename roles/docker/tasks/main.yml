@@ -158,6 +158,7 @@
 
 - name: set fact for docker_version
   command: "docker version -f '{{ '{{' }}.Client.Version{{ '}}' }}'"
+  check_mode: no
   register: installed_docker_version
   changed_when: false
 

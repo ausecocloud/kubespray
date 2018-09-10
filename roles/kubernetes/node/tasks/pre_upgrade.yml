@@ -1,6 +1,7 @@
 ---
 - name: "Pre-upgrade | check if kubelet container exists"
   shell: docker ps -af name=kubelet | grep kubelet
+  check_mode: no
   failed_when: false
   changed_when: false
   register: kubelet_container_check

@@ -8,6 +8,7 @@ rules:
   - apiGroups: [""]
     resources:
       - namespaces
+      - serviceaccounts
     verbs:
       - get
       - list
@@ -24,6 +25,17 @@ rules:
       - get
       - list
       - watch
+      - patch
+  - apiGroups: [""]
+    resources:
+      - services
+    verbs:
+      - get
+  - apiGroups: [""]
+    resources:
+      - endpoints
+    verbs:
+      - get
   - apiGroups: [""]
     resources:
       - nodes
@@ -32,57 +44,29 @@ rules:
       - list
       - update
       - watch
-  - apiGroups: ["extensions"]
-    resources:
-      - thirdpartyresources
-    verbs:
-      - create
-      - get
-      - list
-      - watch
-  - apiGroups: ["extensions"]
+  - apiGroups: ["networking.k8s.io"]
     resources:
       - networkpolicies
     verbs:
       - get
       - list
       - watch
-  - apiGroups: ["projectcalico.org"]
+  - apiGroups: ["crd.projectcalico.org"]
     resources:
-      - globalbgppeers
-    verbs:
-      - get
-      - list
-  - apiGroups: ["projectcalico.org"]
-    resources:
-      - globalconfigs
+      - globalfelixconfigs
+      - felixconfigurations
+      - bgppeers
       - globalbgpconfigs
-    verbs:
-      - create
-      - get
-      - list
-      - update
-      - watch
-  - apiGroups: ["projectcalico.org"]
-    resources:
+      - globalnetworksets
+      - hostendpoints
+      - bgpconfigurations
       - ippools
+      - globalnetworkpolicies
+      - networkpolicies
+      - clusterinformations
     verbs:
       - create
       - get
       - list
       - update
       - watch
-  - apiGroups: ["alpha.projectcalico.org"]
-    resources:
-      - systemnetworkpolicies
-    verbs:
-      - get
-      - list
-  - apiGroups:
-    - policy
-    resourceNames:
-    - privileged
-    resources:
-    - podsecuritypolicies
-    verbs:
-    - use

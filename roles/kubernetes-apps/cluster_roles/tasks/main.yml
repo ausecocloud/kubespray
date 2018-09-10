@@ -130,8 +130,8 @@
     - rbac_enabled
     - cloud_provider is defined
     - cloud_provider == 'vsphere'
-    - kube_version | version_compare('v1.9.0', '>=')
-    - kube_version | version_compare('v1.9.3', '<=')
+    - kube_version is version('v1.9.0', '>=')
+    - kube_version is version('v1.9.3', '<=')
     - inventory_hostname == groups['kube-master'][0]
   tags: vsphere
 
@@ -146,8 +146,8 @@
     - cloud_provider == 'vsphere'
     - vsphere_cloud_provider.rc is defined
     - vsphere_cloud_provider.rc != 0
-    - kube_version | version_compare('v1.9.0', '>=')
-    - kube_version | version_compare('v1.9.3', '<=')
+    - kube_version is version('v1.9.0', '>=')
+    - kube_version is version('v1.9.3', '<=')
     - inventory_hostname == groups['kube-master'][0]
   tags: vsphere
 
@@ -164,8 +164,8 @@
     - cloud_provider == 'vsphere'
     - vsphere_cloud_provider.rc is defined
     - vsphere_cloud_provider.rc != 0
-    - kube_version | version_compare('v1.9.0', '>=')
-    - kube_version | version_compare('v1.9.3', '<=')
+    - kube_version is version('v1.9.0', '>=')
+    - kube_version is version('v1.9.3', '<=')
     - inventory_hostname == groups['kube-master'][0]
   tags: vsphere
 

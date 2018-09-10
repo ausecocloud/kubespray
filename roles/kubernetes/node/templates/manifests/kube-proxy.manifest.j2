@@ -9,8 +9,8 @@ metadata:
     kubespray.kube-proxy-cert/serial: "{{ kube_proxy_cert_serial }}"
 spec:
   hostNetwork: true
-{% if kube_version | version_compare('v1.6', '>=') %}
   dnsPolicy: ClusterFirst
+{% if kube_version is version('v1.6', '>=') %}
 {% endif %}
   # When having win nodes in cluster without this patch, this pod cloud try to be created in windows
   nodeSelector:
@@ -53,7 +53,7 @@ spec:
     - --masquerade-all
 {% elif kube_proxy_mode == 'ipvs' %}
     - --masquerade-all
-{% if kube_version | version_compare('v1.10', '<') %}
+{% if kube_version is version('v1.10', '<') %}
     - --feature-gates=SupportIPVSProxyMode=true
 {% endif %}
     - --ipvs-min-sync-period=5s

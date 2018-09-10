@@ -10,6 +10,7 @@
   retries: 10
   delay: 6
   when: inventory_hostname == groups['kube-master'][0]
+  check_mode: no
 
 - name: Kubernetes Apps | Check AppArmor status
   command: which apparmor_parser
@@ -18,6 +19,7 @@
     - podsecuritypolicy_enabled
     - inventory_hostname == groups['kube-master'][0]
   failed_when: false
+  check_mode: no
 
 - name: Kubernetes Apps | Set apparmor_enabled
   set_fact:
@@ -134,6 +136,7 @@
     - kube_version is version('v1.9.3', '<=')
     - inventory_hostname == groups['kube-master'][0]
   tags: vsphere
+  check_mode: no
 
 - name: Write vsphere-cloud-provider ClusterRole manifest
   template:

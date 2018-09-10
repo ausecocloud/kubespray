@@ -10,6 +10,7 @@
   changed_when: false
   when: kube_apiserver_storage_backend == "etcd3"
   failed_when: false
+  check_mode: no
 
 - name: "Pre-upgrade | etcd3 upgrade | use etcd2 unless forced to etcd3"
   set_fact:
@@ -29,7 +30,9 @@
   shell: "docker ps -af name=k8s_{{item}}* -q | xargs --no-run-if-empty docker rm -f"
   with_items:
     - ["kube-apiserver", "kube-controller-manager", "kube-scheduler"]
-  when: kube_apiserver_manifest_replaced.changed
+  when:
+    - kube_apiserver_manifest_replaced.changed
+    - not ansible_check_mode
   register: remove_master_container
   retries: 4
   until: remove_master_container.rc == 0

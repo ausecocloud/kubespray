@@ -130,13 +130,13 @@
 
 - name: get available packages on Ubuntu
   command: apt-cache policy docker-ce
-  when: docker_task_result|failed
+  when: docker_task_result is failed
   register: available_packages
 
 - name: show available packages on ubuntu
   fail:
     msg: "{{available_packages}}"
-  when: docker_task_result|failed
+  when: docker_task_result is failed
 
 # This is required to ensure any apt upgrade will not break kubernetes
 - name: Set docker pin priority to apt_preferences on Debian family

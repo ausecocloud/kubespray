@@ -15,17 +15,14 @@
   package:
     name: '{{ item }}'
     state: absent
-  with_items:
-    - docker
-    - docker-common
-    - docker-engine
-    - docker-selinux
-    - docker-client
-    - docker-client-latest
-    - docker-latest
-    - docker-latest-logrotate
-    - docker-logrotate
-    - docker-engine-selinux
+  # removed docker-selinux from thath list, as container-selinux is an alias and removing
+  # docker-selinux removes container-selinux which removes docker itself as well
+  loop: "{{ ['docker', 'docker-common', 'docker-engine',
+             'docker-client', 'docker-client-latest',
+             'docker-latest', 'docker-latest-logrotate',
+             'docker-logrotate', 'docker-engine-selinux'] |
+             union( docker_selinux_version is version('17.03', '>') |
+                    ternary(['docker-ce-selinux'], [] )) }}"
   when:
     - ansible_os_family == 'RedHat'
     - (docker_versioned_pkg[docker_version | string] is search('docker-ce'))

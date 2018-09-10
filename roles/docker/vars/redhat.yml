@@ -12,15 +12,18 @@ docker_versioned_pkg:
   '1.13': docker-engine-1.13.1-1.el7.centos
   '17.03': docker-ce-17.03.2.ce-1.el7.centos
   '17.09': docker-ce-17.09.0.ce-1.el7.centos
+  '18.03': docker-ce-18.03.1.ce-1.el7.centos
   'stable': docker-ce-17.03.2.ce-1.el7.centos
   'edge': docker-ce-17.12.1.ce-1.el7.centos
 
 docker_selinux_versioned_pkg:
-  'latest': docker-ce-selinux
+  'latest': container-selinux
   '1.11': docker-engine-selinux-1.11.2-1.el7.centos
   '1.12': docker-engine-selinux-1.12.6-1.el7.centos
   '1.13': docker-engine-selinux-1.13.1-1.el7.centos
   '17.03': docker-ce-selinux-17.03.2.ce-1.el7.centos
+  '17.09': container-selinux
+  '18.03': container-selinux
   'stable': docker-ce-selinux-17.03.2.ce-1.el7.centos
   'edge': docker-ce-selinux-17.03.2.ce-1.el7.centos
 

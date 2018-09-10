@@ -70,6 +70,7 @@ nginx_image_repo: nginx
 nginx_image_tag: 1.13
 
 etcd_config_dir: /etc/ssl/etcd
+kubelet_root_dir: /var/lib/kubelet
 
 kubelet_flexvolumes_plugins_dir: /var/lib/kubelet/volume-plugins
 

@@ -18,3 +18,28 @@
   yum:
     name: libselinux-python
     state: present
+
+- name: Install nfs client
+  yum:
+    name: nfs-utils
+    state: present
+
+# server only daemons? nfs-server, nfs-idmap
+- name: Ensure nfs-server is not running
+  service:
+    name: nfs-server
+    enabled: no
+    state: stopped
+
+- name: Ensure GlusterFS package repo is installed
+  yum:
+    name: centos-release-gluster312
+    state: present
+
+- name: Ensure Gluster client packages are installed
+  yum:
+    name:
+      - glusterfs
+      - glusterfs-fuse
+      - attr
+    state: present

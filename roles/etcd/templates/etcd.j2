@@ -7,7 +7,7 @@
   -v {{ etcd_cert_dir }}:{{ etcd_cert_dir }}:ro \
   -v {{ etcd_data_dir }}:{{ etcd_data_dir }}:rw \
 {% if etcd_memory_limit is defined %}
-  --memory={{ etcd_memory_limit|regex_replace('Mi', 'M') }} \
+  --memory={{ etcd_memory_limit|regex_replace('Mi', 'M')|regex_replace('Gi', 'G') }} \
 {% endif %}
 {% if etcd_cpu_limit is defined %}
   --cpu-shares={{ etcd_cpu_limit|regex_replace('m', '') }} \

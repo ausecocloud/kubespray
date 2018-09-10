@@ -25,6 +25,13 @@ spec:
         prometheus.io/port: "9402"
     spec:
       serviceAccountName: cert-manager
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/ingress
+          effect: NoSchedule
+        - key: "CriticalAddonsOnly"
+          operator: "Exists"
       containers:
         - name: cert-manager
           image: {{ cert_manager_controller_image_repo }}:{{ cert_manager_controller_image_tag }}

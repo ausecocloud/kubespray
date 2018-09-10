@@ -1,16 +1,17 @@
 ---
 - set_fact:
-    has_bastion: "{{ 'bastion' in groups['all'] }}"
+    has_bastion: "{{ groups.get('bastion', [])|length > 0 }}"
 
 - set_fact:
-    bastion_ip: "{{ hostvars['bastion']['ansible_host'] }}"
+    # use ansible_ssh_host here, becuause ansible_host is the internal ip on the private network
+    bastion_ip: "{{ hostvars[groups['bastion'][0]]['ansible_ssh_host'] }}"
   when: has_bastion
 
 # As we are actually running on localhost, the ansible_ssh_user is your local user when you try to use it directly
 # To figure out the real ssh user, we delegate this task to the bastion and store the ansible_user in real_user
 - set_fact:
     real_user: "{{ ansible_user }}"
-  delegate_to: bastion
+  delegate_to: "{{ groups['bastion'][0] }}"
   when: has_bastion
 
 - name: create ssh bastion conf

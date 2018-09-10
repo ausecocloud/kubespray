@@ -169,7 +169,7 @@
     - inventory_hostname in groups['k8s-cluster']
     - cloud_provider is defined
     - cloud_provider == 'openstack'
-    - openstack_cacert is defined
+    - openstack_cacert is defined and openstack_cacert != ""
   tags:
     - cloud-provider
 

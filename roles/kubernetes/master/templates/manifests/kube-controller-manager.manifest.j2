@@ -10,8 +10,8 @@ metadata:
     kubespray.controller-manager-cert/serial: "{{ controller_manager_cert_serial }}"
 spec:
   hostNetwork: true
-  dnsPolicy: ClusterFirst
 {% if kube_version is version('v1.6', '>=') %}
+  dnsPolicy: ClusterFirstWithHostNet
 {% endif %}
   containers:
   - name: kube-controller-manager

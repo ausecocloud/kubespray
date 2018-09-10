@@ -7,6 +7,8 @@ metadata:
   labels:
     app.kubernetes.io/name: default-backend
     app.kubernetes.io/part-of: ingress-nginx
+  annotations:
+    prometheus.io/scrape: "true"
 spec:
   ports:
     - port: 80

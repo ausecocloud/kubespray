@@ -21,6 +21,8 @@ spec:
         app: cert-manager
         release: cert-manager
       annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9402"
     spec:
       serviceAccountName: cert-manager
       containers:

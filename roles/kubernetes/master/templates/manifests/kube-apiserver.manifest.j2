@@ -11,9 +11,6 @@ metadata:
     kubespray.apiserver-cert/serial: "{{ apiserver_cert_serial }}"
 spec:
   hostNetwork: true
-{% if kube_version is version('v1.6', '>=')  %}
-  dnsPolicy: ClusterFirstWithHostNet
-{% endif %}
   containers:
   - name: kube-apiserver
     image: {{ hyperkube_image_repo }}:{{ hyperkube_image_tag }}
@@ -33,7 +30,7 @@ spec:
     - --audit-log-maxage={{ audit_log_maxage }}
     - --audit-log-maxbackup={{ audit_log_maxbackups }}
     - --audit-log-maxsize={{ audit_log_maxsize }}
-    - --audit-policy-file={{ audit_policy_file }} 
+    - --audit-policy-file={{ audit_policy_file }}
 {% endif %}
     - --advertise-address={{ ip | default(ansible_default_ipv4.address) }}
     - --etcd-servers={{ etcd_access_addresses }}
@@ -58,10 +55,10 @@ spec:
     - --admission-control={{ kube_apiserver_admission_control | join(',') }}
 {% else %}
 {% if kube_apiserver_enable_admission_plugins|length > 0 %}
-    - --enable-admission-plugins={{ kube_apiserver_enable_admission_plugins | join(',') }} 
+    - --enable-admission-plugins={{ kube_apiserver_enable_admission_plugins | join(',') }}
 {% endif %}
 {% if kube_apiserver_disable_admission_plugins|length > 0 %}
-    - --disable-admission-plugins={{ kube_apiserver_disable_admission_plugins | join(',') }} 
+    - --disable-admission-plugins={{ kube_apiserver_disable_admission_plugins | join(',') }}
 {% endif %}
 {% endif %}
     - --service-cluster-ip-range={{ kube_service_addresses }}

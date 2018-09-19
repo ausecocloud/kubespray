@@ -9,9 +9,6 @@ metadata:
     kubespray.scheduler-cert/serial: "{{ scheduler_cert_serial }}"
 spec:
   hostNetwork: true
-{% if kube_version is version('v1.6', '>=') %}
-  dnsPolicy: ClusterFirstWithHostNet
-{% endif %}
   containers:
   - name: kube-scheduler
     image: {{ hyperkube_image_repo }}:{{ hyperkube_image_tag }}

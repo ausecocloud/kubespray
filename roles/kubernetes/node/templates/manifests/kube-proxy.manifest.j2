@@ -9,9 +9,6 @@ metadata:
     kubespray.kube-proxy-cert/serial: "{{ kube_proxy_cert_serial }}"
 spec:
   hostNetwork: true
-{% if kube_version is version('v1.6', '>=') %}
-  dnsPolicy: ClusterFirstWithHostNet
-{% endif %}
   # When having win nodes in cluster without this patch, this pod cloud try to be created in windows
   nodeSelector:
     beta.kubernetes.io/os: linux

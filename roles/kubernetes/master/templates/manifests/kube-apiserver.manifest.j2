@@ -11,6 +11,9 @@ metadata:
     kubespray.apiserver-cert/serial: "{{ apiserver_cert_serial }}"
 spec:
   hostNetwork: true
+{% if kube_version|version_compare('v1.11.1', '>=') %}
+  priorityClassName: system-node-critical
+{% endif %}
   containers:
   - name: kube-apiserver
     image: {{ hyperkube_image_repo }}:{{ hyperkube_image_tag }}
@@ -64,12 +67,13 @@ spec:
     - --service-cluster-ip-range={{ kube_service_addresses }}
     - --service-node-port-range={{ kube_apiserver_node_port_range }}
     - --client-ca-file={{ kube_cert_dir }}/ca.pem
-    - --profiling=false
+    - --profiling={{ kube_profiling }}
     - --repair-malformed-updates=false
     - --kubelet-client-certificate={{ kube_cert_dir }}/node-{{ inventory_hostname }}.pem
     - --kubelet-client-key={{ kube_cert_dir }}/node-{{ inventory_hostname }}-key.pem
     - --service-account-lookup=true
     - --kubelet-preferred-address-types={{ kubelet_preferred_address_types }}
+    - --request-timeout={{ kube_apiserver_request_timeout }}
 {% if kube_basic_auth|default(true) %}
     - --basic-auth-file={{ kube_users_dir }}/known_users.csv
 {% endif %}
@@ -99,9 +103,7 @@ spec:
 {%   endif %}
 {% endif %}
     - --secure-port={{ kube_apiserver_port }}
-{% if kube_apiserver_insecure_port|string != "0" or kube_version | version_compare('v1.10', '<') %}
     - --insecure-port={{ kube_apiserver_insecure_port }}
-{% endif %}
     - --storage-backend={{ kube_apiserver_storage_backend }}
 {% if kube_api_runtime_config is defined %}
 {%   for conf in kube_api_runtime_config %}
@@ -115,11 +117,9 @@ spec:
 {% endif %}
     - --v={{ kube_log_level }}
     - --allow-privileged=true
-{% if cloud_provider is defined and cloud_provider in ["openstack", "azure", "vsphere"] %}
+{% if cloud_provider is defined and cloud_provider in ["openstack", "azure", "vsphere", "aws"] %}
     - --cloud-provider={{ cloud_provider }}
     - --cloud-config={{ kube_config_dir }}/cloud_config
-{% elif cloud_provider is defined and cloud_provider == "aws" %}
-    - --cloud-provider={{ cloud_provider }}
 {% endif %}
 {% if kube_api_anonymous_auth is defined and kube_version is version('v1.5', '>=')  %}
     - --anonymous-auth={{ kube_api_anonymous_auth }}

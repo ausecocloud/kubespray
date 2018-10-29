@@ -16,7 +16,7 @@ is_atomic: false
 disable_swap: true
 
 ## Change this to use another Kubernetes version, e.g. a current beta release
-kube_version: v1.11.2
+kube_version: v1.11.3
 
 ## Kube Proxy mode One of ['iptables','ipvs']
 kube_proxy_mode: iptables
@@ -136,37 +136,81 @@ kube_apiserver_port: 6443
 kube_apiserver_insecure_bind_address: 127.0.0.1
 kube_apiserver_insecure_port: 8080
 
+# dynamic kubelet configuration
+dynamic_kubelet_configuration: false
+
+# define kubelet config dir for dynamic kubelet
+# kubelet_config_dir:
+default_kubelet_config_dir: "{{ kube_config_dir }}/dynamic_kubelet_dir"
+dynamic_kubelet_configuration_dir: "{{ kubelet_config_dir | default(default_kubelet_config_dir) }}"
+
 # Aggregator
 kube_api_aggregator_routing: false
+
+# Profiling
+kube_profiling: false
 
 # Container for runtime
 container_manager: docker
 
+## Uncomment this if you want to force overlay/overlay2 as docker storage driver
+## Please note that overlay2 is only supported on newer kernels
+# docker_storage_options: -s overlay2
+
+## Enable docker_container_storage_setup, it will configure devicemapper driver on Centos7 or RedHat7.
+docker_container_storage_setup: false
+
+## It must be define a disk path for docker_container_storage_setup_devs.
+## Otherwise docker-storage-setup will be executed incorrectly.
+# docker_container_storage_setup_devs: /dev/vdb
+
+## Uncomment this if you have more than 3 nameservers, then we'll only use the first 3.
+docker_dns_servers_strict: false
+
 # Path used to store Docker data
 docker_daemon_graph: "/var/lib/docker"
+
+## Used to set docker daemon iptables options to true
+docker_iptables_enabled: "false"
 
 # Docker log options
 # Rotate container stderr/stdout logs at 50m and keep last 5
 docker_log_opts: "--log-opt max-size=50m --log-opt max-file=5"
 
-## A string of extra options to pass to the docker daemon.
-## This string should be exactly as you wish it to appear.
-## An obvious use case is allowing insecure-registry access
-## to self hosted registries like so:
-docker_options: >
-  --insecure-registry={{ kube_service_addresses }} --graph={{ docker_daemon_graph }} {{ docker_log_opts }}
-  {% if ansible_architecture == "aarch64" and ansible_os_family == "RedHat" %}
-  --add-runtime docker-runc=/usr/libexec/docker/docker-runc-current
-  --default-runtime=docker-runc --exec-opt native.cgroupdriver=systemd
-  --userland-proxy-path=/usr/libexec/docker/docker-proxy-current --signature-verification=false
-  {% endif %}
+## An obvious use case is allowing insecure-registry access to self hosted registries.
+## Can be ipddress and domain_name.
+## example define 172.19.16.11 or mirror.registry.io
+# docker_insecure_registries:
+#   - mirror.registry.io
+#   - 172.19.16.11
+
+## Add other registry,example China registry mirror.
+# docker_registry_mirrors:
+#   - https://registry.docker-cn.com
+#   - https://mirror.aliyuncs.com
 
 ## If non-empty will override default system MounFlags value.
 ## This option takes a mount propagation flag: shared, slave
 ## or private, which control whether mounts in the file system
 ## namespace set up for docker will receive or propagate mounts
 ## and unmounts. Leave empty for system default
-docker_mount_flags:
+# docker_mount_flags:
+
+## A string of extra options to pass to the docker daemon.
+## This string should be exactly as you wish it to appear.
+docker_options: >-
+  {%- if docker_insecure_registries is defined -%}
+  {{ docker_insecure_registries | map('regex_replace', '^(.*)$', '--insecure-registry=\1' ) | list | join(' ') }}
+  {%- endif %}
+  {% if docker_registry_mirrors is defined -%}
+  {{ docker_registry_mirrors | map('regex_replace', '^(.*)$', '--registry-mirror=\1' ) | list | join(' ') }}
+  {%- endif %}
+  --graph={{ docker_daemon_graph }} {{ docker_log_opts }}
+  {%- if ansible_architecture == "aarch64" and ansible_os_family == "RedHat" %}
+  --add-runtime docker-runc=/usr/libexec/docker/docker-runc-current
+  --default-runtime=docker-runc --exec-opt native.cgroupdriver=systemd
+  --userland-proxy-path=/usr/libexec/docker/docker-proxy-current --signature-verification=false
+  {%- endif -%}
 
 # Settings for containerized control plane (etcd/kubelet/secrets)
 etcd_deployment_type: docker
@@ -194,7 +238,6 @@ k8s_image_pull_policy: IfNotPresent
 dashboard_enabled: true
 
 # Addons which can be enabled
-efk_enabled: false
 helm_enabled: false
 registry_enabled: false
 enable_network_policy: true
@@ -206,6 +249,7 @@ cert_manager_enabled: false
 
 ## When OpenStack is used, Cinder version can be explicitly specified if autodetection fails (Fixed in 1.9: https://github.com/kubernetes/kubernetes/issues/50461)
 # openstack_blockstorage_version: "v1/v2/auto (default)"
+openstack_blockstorage_ignore_volume_az: "{{ volume_cross_zone_attachment | default('false') }}"
 ## When OpenStack is used, if LBaaSv2 is available you can enable it with the following 2 variables.
 openstack_lbaas_enabled: false
 # openstack_lbaas_subnet_id: "Neutron subnet ID (not network ID) to create LBaaS VIP"
@@ -250,11 +294,6 @@ vault_secrets_dir: "{{ vault_base_dir }}/secrets"
 local_volume_provisioner_base_dir: /mnt/disks
 local_volume_provisioner_mount_dir: /mnt/disks
 
-## Running on top of openstack vms with cinder enabled may lead to unschedulable pods due to NoVolumeZoneConflict restriction in kube-scheduler.
-## See https://github.com/kubernetes-incubator/kubespray/issues/2141
-## Set this variable to true to get rid of this issue
-volume_cross_zone_attachment: false
-
 # weave's network password for encryption
 # if null then no network encryption
 # you can use --extra-vars to pass the password in command line
@@ -269,6 +308,11 @@ weave_mode_seed: false
 # Do not manually change these values
 weave_seed: uninitialized
 weave_peers: uninitialized
+
+# Contiv L3 BGP Mode
+contiv_peer_with_uplink_leaf: false
+contiv_global_as: "65002"
+contiv_global_neighbor_as: "500"
 
 ## Set no_proxy to all assigned cluster IPs and hostnames
 no_proxy: >-
@@ -285,6 +329,9 @@ no_proxy: >-
   {%-   endif -%}
   {{ item }},{{ item }}.{{ dns_domain }},
   {%- endfor -%}
+  {%- if additional_no_proxy is defined -%}
+  {{ additional_no_proxy }},
+  {%- endif -%}
   127.0.0.1,localhost
   {%- endif %}
 

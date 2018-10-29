@@ -10,28 +10,24 @@ spec:
   selector:
     matchLabels:
       k8s-app: canal-node
-  updateStrategy:
-    rollingUpdate:
-      maxUnavailable: {{ serial | default('20%') }}
-    type: RollingUpdate
   template:
     metadata:
+      annotations:
+        # Mark pod as critical for rescheduling (Will have no effect starting with kubernetes 1.12)
+        scheduler.alpha.kubernetes.io/critical-pod: ''
       labels:
         k8s-app: canal-node
     spec:
+{% if kube_version|version_compare('v1.11.1', '>=') %}
+      priorityClassName: system-node-critical
+{% endif %}
       hostNetwork: true
       serviceAccountName: canal
       tolerations:
-        # Make sure canal gets scheduled on all nodes.
-        - effect: NoSchedule
-          operator: Exists
-        # Mark the pod as a critical add-on for rescheduling.
+        - operator: Exists
+        # Mark pod as critical for rescheduling (Will have no effect starting with kubernetes 1.12)
         - key: CriticalAddonsOnly
-          operator: Exists
-        - effect: NoExecute
-          operator: Exists
-      # Minimize downtime during a rolling upgrade or deletion; tell Kubernetes to do a "force
-      # deletion": https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods.
+          operator: "Exists"
       terminationGracePeriodSeconds: 0
       volumes:
         # Used by calico/node.
@@ -234,3 +230,7 @@ spec:
               name: cni-bin-dir
             - mountPath: /host/etc/cni/net.d
               name: cni-net-dir
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: {{ serial | default('20%') }}
+    type: RollingUpdate

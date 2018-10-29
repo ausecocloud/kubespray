@@ -30,11 +30,21 @@ To deploy the cluster you can use :
     CONFIG_FILE=inventory/mycluster/hosts.ini python3 contrib/inventory_builder/inventory.py ${IPS[@]}
 
     # Review and change parameters under ``inventory/mycluster/group_vars``
-    cat inventory/mycluster/group_vars/all.yml
-    cat inventory/mycluster/group_vars/k8s-cluster.yml
+    cat inventory/mycluster/group_vars/all/all.yml
+    cat inventory/mycluster/group_vars/k8s-cluster/k8s-cluster.yml
 
     # Deploy Kubespray with Ansible Playbook
     ansible-playbook -i inventory/mycluster/hosts.ini cluster.yml
+
+Note: When Ansible is already installed via system packages on the control machine, other python packages installed via `sudo pip install -r requirements.txt` will go to a different directory tree (e.g. `/usr/local/lib/python2.7/dist-packages` on Ubuntu) from Ansible's (e.g. `/usr/lib/python2.7/dist-packages/ansible` still on Ubuntu).
+As a consequence, `ansible-playbook` command will fail with:
+```
+ERROR! no action detected in task. This often indicates a misspelled module name, or incorrect module path.
+```
+probably pointing on a task depending on a module present in requirements.txt (i.e. "unseal vault").
+
+One way of solving this would be to uninstall the Ansible package and then, to install it via pip but it is not always possible.
+A workaround consists of setting `ANSIBLE_LIBRARY` and `ANSIBLE_MODULE_UTILS` environment variables respectively to the `ansible/modules` and `ansible/module_utils` subdirectories of pip packages installation location, which can be found in the Location field of the output of `pip show [package]` before executing `ansible-playbook`.
 
 ### Vagrant
 
@@ -82,6 +92,7 @@ Supported Linux Distributions
 -   **Debian** Jessie, Stretch, Wheezy
 -   **Ubuntu** 16.04, 18.04
 -   **CentOS/RHEL** 7
+-   **Fedora** 28
 -   **Fedora/CentOS** Atomic
 -   **openSUSE** Leap 42.3/Tumbleweed
 
@@ -91,20 +102,21 @@ Supported Components
 --------------------
 
 -   Core
-    -   [kubernetes](https://github.com/kubernetes/kubernetes) v1.11.2
+    -   [kubernetes](https://github.com/kubernetes/kubernetes) v1.11.3
     -   [etcd](https://github.com/coreos/etcd) v3.2.18
     -   [docker](https://www.docker.com/) v17.03 (see note)
     -   [rkt](https://github.com/rkt/rkt) v1.21.0 (see Note 2)
+    -   [cri-o](http://cri-o.io/) v1.11.5 (experimental: see [CRI-O Note](docs/cri-o.md). Only on centos based OS)
 -   Network Plugin
     -   [calico](https://github.com/projectcalico/calico) v3.1.3
     -   [canal](https://github.com/projectcalico/canal) (given calico/flannel versions)
     -   [cilium](https://github.com/cilium/cilium) v1.2.0
     -   [contiv](https://github.com/contiv/install) v1.1.7
     -   [flanneld](https://github.com/coreos/flannel) v0.10.0
-    -   [weave](https://github.com/weaveworks/weave) v2.4.0
+    -   [weave](https://github.com/weaveworks/weave) v2.4.1
 -   Application
     -   [cephfs-provisioner](https://github.com/kubernetes-incubator/external-storage) v2.1.0-k8s1.11
-    -   [cert-manager](https://github.com/jetstack/cert-manager) v0.4.1
+    -   [cert-manager](https://github.com/jetstack/cert-manager) v0.5.0
     -   [coredns](https://github.com/coredns/coredns) v1.2.2
     -   [ingress-nginx](https://github.com/kubernetes/ingress-nginx) v0.19.0
 

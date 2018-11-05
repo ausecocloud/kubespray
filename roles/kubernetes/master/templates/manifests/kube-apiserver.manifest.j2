@@ -11,7 +11,7 @@ metadata:
     kubespray.apiserver-cert/serial: "{{ apiserver_cert_serial }}"
 spec:
   hostNetwork: true
-{% if kube_version|version_compare('v1.11.1', '>=') %}
+{% if kube_version is version('v1.11.1', '>=') %}
   priorityClassName: system-node-critical
 {% endif %}
   containers:
@@ -54,7 +54,7 @@ spec:
 {% if kube_version is version('v1.9', '>=') %}
     - --endpoint-reconciler-type=lease
 {% endif %}
-{% if kube_version is version_compare('v1.10', '<') %}
+{% if kube_version is version('v1.10', '<') %}
     - --admission-control={{ kube_apiserver_admission_control | join(',') }}
 {% else %}
 {% if kube_apiserver_enable_admission_plugins|length > 0 %}

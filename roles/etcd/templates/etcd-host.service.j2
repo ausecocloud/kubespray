@@ -11,6 +11,10 @@ NotifyAccess=all
 Restart=always
 RestartSec=10s
 LimitNOFILE=40000
+# best effort
+IOSchedulingClass=2
+# highest priority
+IOSchedulingPriority=0
 
 [Install]
 WantedBy=multi-user.target

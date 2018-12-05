@@ -80,11 +80,15 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             # The interface flannel should run on.
+            # - name: FLANNELD_IFACE
+            #   valueFrom:
+            #     configMapKeyRef:
+            #       name: canal-config
+            #       key: canal_iface
             - name: FLANNELD_IFACE
               valueFrom:
-                configMapKeyRef:
-                  name: canal-config
-                  key: canal_iface
+                fieldRef:
+                  fieldPath: status.hostIP
             # Perform masquerade on traffic leaving the pod cidr.
             - name: FLANNELD_IP_MASQ
               valueFrom:
@@ -168,7 +172,7 @@ spec:
             - name: FELIX_HEALTHENABLED
               value: "true"
             - name: IP_AUTODETECTION_METHOD
-              value: "can-reach=8.8.8.8"
+              value: "{{ canal_autodetection_method }}"
 
             # No IP address needed.
             - name: IP

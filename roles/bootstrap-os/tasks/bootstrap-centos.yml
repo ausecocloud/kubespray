@@ -40,15 +40,20 @@
     enabled: no
     state: stopped
 
-- name: Ensure GlusterFS package repo is installed
+- name: Ensure legacy GlusterFS package repo is not installed
   yum:
     name: centos-release-gluster312
+    state: absent
+
+- name: Ensure GlusterFS package repo is installed
+  yum:
+    name: centos-release-gluster5
     state: present
 
-- name: Ensure Gluster client packages are installed
+- name: Ensure Gluster client packages are up to date
   yum:
     name:
       - glusterfs
       - glusterfs-fuse
       - attr
-    state: present
+    state: latest

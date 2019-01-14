@@ -21,7 +21,7 @@
   -v /sys:/sys:ro \
   -v {{ docker_daemon_graph }}:{{ docker_daemon_graph }}:rw \
   -v /var/log:/var/log:rw \
-  -v {{ kubelet_root_dir }}:{{ kubelet_root_dir }}:shared \
+  -v /var/lib/kubelet:/var/lib/kubelet:shared \
   -v /var/lib/calico:/var/lib/calico:shared \
   -v /var/lib/cni:/var/lib/cni:shared \
   -v /var/run:/var/run:rw \

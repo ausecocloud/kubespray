@@ -39,6 +39,8 @@
 
 # TODO: currently canal-node container does this, but this should
 #       be re-enabled to support cri-o
+# TODO: Enabling this also means, that we have to write other config files
+#       e.g. cnif conflist, flannel... etc... everything canal install-cni does now
 # - name: Canal | Copy cni plugins from calico/cni
 #   command: "{{ docker_bin_dir }}/docker run --rm -v /opt/cni/bin:/cnibindir {{ calico_cni_image_repo }}:{{ calico_cni_image_tag }} sh -c 'cp /opt/cni/bin/* /cnibindir/'"
 #   register: cni_task_result

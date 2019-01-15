@@ -4,6 +4,7 @@
 -e DATASTORE_TYPE=kubernetes \
 -e KUBECONFIG=/etc/kubernetes/admin.conf \
 -v {{ docker_bin_dir }}/docker:{{ docker_bin_dir }}/docker \
+-v /var/run/calico:/var/run/calico \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v /etc/kubernetes:/etc/kubernetes:ro \
 -v {{ canal_policy_dir }}:{{ canal_policy_dir }}:ro \

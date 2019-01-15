@@ -44,4 +44,3 @@
     - download.file
     - download.unarchive|default(False)
     - group_names | intersect(download.groups) | length
-    - not ansible_check_mode

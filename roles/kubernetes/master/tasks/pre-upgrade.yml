@@ -30,9 +30,7 @@
   shell: "docker ps -af name=k8s_{{item}}* -q | xargs --no-run-if-empty docker rm -f"
   with_items:
     - ["kube-apiserver", "kube-controller-manager", "kube-scheduler"]
-  when:
-    - kube_apiserver_manifest_replaced.changed
-    - not ansible_check_mode
+  when: kube_apiserver_manifest_replaced.changed
   register: remove_master_container
   retries: 4
   until: remove_master_container.rc == 0

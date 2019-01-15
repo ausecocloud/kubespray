@@ -1,21 +1,4 @@
 ---
-- name: check bin dir exists
-  file:
-    path: "{{bin_dir}}"
-    state: directory
-    owner: root
-  become: true
-  tags:
-    - kubelet
-    - k8s-secrets
-    - kube-controller-manager
-    - kube-apiserver
-    - bootstrap-os
-    - apps
-    - network
-    - master
-    - node
-
 - name: Create kubernetes directories
   file:
     path: "{{ item }}"
@@ -34,6 +17,7 @@
     - master
     - node
   with_items:
+    - "{{ bin_dir }}"
     - "{{ kube_config_dir }}"
     - "{{ kube_config_dir }}/ssl"
     - "{{ kube_manifest_dir }}"

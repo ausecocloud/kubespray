@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
   labels:
@@ -6,9 +6,6 @@ metadata:
   name: netchecker-agent
   namespace: {{ netcheck_namespace }}
 spec:
-  selector:
-    matchLabels:
-      app: netchecker-agent
   template:
     metadata:
       name: netchecker-agent

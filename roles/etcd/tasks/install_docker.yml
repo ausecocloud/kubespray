@@ -9,10 +9,7 @@
   retries: 4
   delay: "{{ retry_stagger | random + 3 }}"
   changed_when: false
-  when:
-    - etcd_cluster_setup
-    - not ansible_check_mode
-  ignore_errors: "{{ ansible_check_mode }}"
+  when: etcd_cluster_setup
 
 - name: Install etcd launch script
   template:

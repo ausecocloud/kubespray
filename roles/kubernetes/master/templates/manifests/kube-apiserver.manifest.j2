@@ -38,7 +38,7 @@ spec:
     - --advertise-address={{ ip | default(ansible_default_ipv4.address) }}
     - --etcd-servers={{ etcd_access_addresses }}
 {%   if etcd_events_cluster_enabled %}
-    - --etcd-servers-overrides=/events#{{ etcd_events_access_addresses }}
+    - --etcd-servers-overrides=/events#{{ etcd_events_access_addresses_semicolon }}
 {% endif %}
 {%   if kube_version is version('v1.9', '<')  %}
     - --etcd-quorum-read=true

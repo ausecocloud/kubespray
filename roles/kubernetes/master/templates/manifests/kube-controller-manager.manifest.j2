@@ -51,8 +51,10 @@ spec:
 {% endif %}
 {% if kube_network_plugin is defined and kube_network_plugin == 'cloud' %}
     - --configure-cloud-routes=true
+{% else %}
+    - --configure-cloud-routes=false
 {% endif %}
-{% if kube_network_plugin is defined and kube_network_plugin in ["cloud", "flannel", "canal", "cilium"] %}
+{% if kube_network_plugin is defined and kube_network_plugin in ["cloud", "flannel", "canal", "cilium", "kube-router"] %}
     - --allocate-node-cidrs=true
     - --cluster-cidr={{ kube_pods_subnet }}
     - --service-cluster-ip-range={{ kube_service_addresses }}

@@ -44,16 +44,17 @@ kube_image_repo: "gcr.io/google-containers"
 
 # TODO(mattymo): Move calico versions to roles/network_plugins/calico/defaults
 # after migration to container download
-calico_version: "v3.2.1"
-calico_ctl_version: "v3.2.1"
-calico_cni_version: "v3.2.1"
+calico_version: "v3.8.0"
+calico_ctl_version: "v3.8.0"
+calico_cni_version: "v3.8.0"
 calico_policy_version: "v3.1.3"
-calico_rr_version: "v0.6.3"
+calico_rr_version: "v0.8.0"
+calico_flexvol_version: "v3.8.0"
 
-flannel_version: "v0.10.0"
+flannel_version: "v0.11.0"
 flannel_cni_version: "v0.3.0"
 
-cni_version: "v0.6.0"
+cni_version: "v0.8.1"
 
 weave_version: 2.5.0
 pod_infra_version: 3.1
@@ -66,7 +67,7 @@ multus_version: "v3.1.autoconf"
 kubeadm_download_url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubeadm_version }}/bin/linux/{{ image_arch }}/kubeadm"
 hyperkube_download_url: "https://storage.googleapis.com/kubernetes-release/release/{{ kube_version }}/bin/linux/amd64/hyperkube"
 etcd_download_url: "https://github.com/coreos/etcd/releases/download/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-amd64.tar.gz"
-cni_download_url: "https://github.com/containernetworking/plugins/releases/download/{{ cni_version }}/cni-plugins-{{ image_arch }}-{{ cni_version }}.tgz"
+cni_download_url: "https://github.com/containernetworking/plugins/releases/download/{{ cni_version }}/cni-plugins-linux-{{ image_arch }}-{{ cni_version }}.tgz"
 
 # Checksums
 hyperkube_checksums:
@@ -113,7 +114,7 @@ etcd_binary_checksums:
   v3.2.18: b729db0732448064271ea6fdcb901773c4fe917763ca07776f22d0e5e0bd4097
 
 etcd_binary_checksum: "{{ etcd_binary_checksums[etcd_version] }}"
-cni_binary_checksum: f04339a21b8edf76d415e7f17b620e63b8f37a76b2f706671587ab6464411f2d
+cni_binary_checksum: e9bfc78acd3ae71be77eb8f3e890cc9078a33cc3797703b8ff2fc3077a232252
 
 hyperkube_binary_checksum: "{{ hyperkube_checksums[kube_version] }}"
 kubeadm_binary_checksum: "{{ kubeadm_checksums[kubeadm_version] }}"
@@ -142,6 +143,8 @@ calico_policy_image_repo: "quay.io/calico/kube-controllers"
 calico_policy_image_tag: "{{ calico_policy_version }}"
 calico_rr_image_repo: "quay.io/calico/routereflector"
 calico_rr_image_tag: "{{ calico_rr_version }}"
+calico_flexvol_image_repo: "quay.io/calico/pod2daemon-flexvol"
+calico_flexvol_image_tag: "{{ calico_flexvol_version }}"
 hyperkube_image_repo: "{{ kube_image_repo }}/hyperkube-{{ image_arch }}"
 hyperkube_image_tag: "{{ kube_version }}"
 pod_infra_image_repo: "gcr.io/google_containers/pause-{{ image_arch }}"
@@ -268,7 +271,7 @@ downloads:
     enabled: true
     file: true
     version: "{{ cni_version }}"
-    dest: "{{local_release_dir}}/cni-plugins-{{ image_arch }}-{{ cni_version }}.tgz"
+    dest: "{{local_release_dir}}/cni-plugins-linux-{{ image_arch }}-{{ cni_version }}.tgz"
     sha256: "{{ cni_binary_checksum }}"
     url: "{{ cni_download_url }}"
     unarchive: false

@@ -18,6 +18,7 @@ rules:
       - pods/status
     verbs:
       - update
+      - patch
   - apiGroups: [""]
     resources:
       - pods
@@ -44,6 +45,13 @@ rules:
       - list
       - update
       - watch
+  - apiGroups: [""]
+    resources:
+      - nodes/status
+    # TODO: all privileges needed? (update is needed)
+    verbs:
+      - update
+      - patch
   - apiGroups: ["networking.k8s.io"]
     resources:
       - networkpolicies
@@ -57,13 +65,15 @@ rules:
       - felixconfigurations
       - bgppeers
       - globalbgpconfigs
-      - globalnetworksets
-      - hostendpoints
       - bgpconfigurations
       - ippools
+      - ipamblocks
       - globalnetworkpolicies
+      - globalnetworksets
       - networkpolicies
+      - networksets
       - clusterinformations
+      - hostendpoints
     verbs:
       - create
       - get

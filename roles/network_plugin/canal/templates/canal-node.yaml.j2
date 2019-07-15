@@ -10,6 +10,10 @@ spec:
   selector:
     matchLabels:
       k8s-app: canal-node
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: {{ serial | default('20%') }}
+    type: RollingUpdate
   template:
     metadata:
       annotations:
@@ -24,39 +28,51 @@ spec:
       hostNetwork: true
       serviceAccountName: canal
       tolerations:
-        - operator: Exists
+        - effect: NoSchedule
+          operator: Exists
         # Mark pod as critical for rescheduling (Will have no effect starting with kubernetes 1.12)
         - key: CriticalAddonsOnly
           operator: "Exists"
+        - effect: NoExecute
+          operator: Exists
       terminationGracePeriodSeconds: 0
-      volumes:
-        # Used by calico/node.
-        - name: lib-modules
-          hostPath:
-            path: /lib/modules
-        - name: var-lib-calico
-          hostPath:
-            path: /var/lib/calico
-        - name: var-run-calico
-          hostPath:
-            path: /var/run/calico
-        # Used to install CNI.
-        - name: cni-bin-dir
-          hostPath:
-            path: /opt/cni/bin
-        - name: cni-net-dir
-          hostPath:
-            path: /etc/cni/net.d
-        # Used by flannel daemon.
-        - name: run
-          hostPath:
-            path: /run
-        - name: flannel-cfg
-          configMap:
-            name: canal-config
-        #- name: resolv
-        #  hostPath:
-        #    path: /etc/resolv.conf
+      initContainers:
+        # This container installs the CNI binaries
+        # and CNI network config file on each node.
+        - name: install-cni
+          image: "{{ calico_cni_image_repo }}:{{ calico_cni_image_tag }}"
+          command: ["/install-cni.sh"]
+          env:
+            # Name of the CNI config file to create.
+            - name: CNI_CONF_NAME
+              # TODO: rename to 10-canal.conflist
+              value: "10-calico.conflist"
+            # The CNI network config to install on each node.
+            - name: CNI_NETWORK_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: canal-config
+                  key: cni_network_config
+            # Set the hostname based on the k8s node name.
+            - name: KUBERNETES_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            # Prevents the container from sleeping forever.
+            - name: SLEEP
+              value: "false"
+          volumeMounts:
+            - mountPath: /host/opt/cni/bin
+              name: cni-bin-dir
+            - mountPath: /host/etc/cni/net.d
+              name: cni-net-dir
+        # Adds a Flex Volume Driver that creates a per-pod Unix Domain Socket to allow Dikastes
+        # to communicate with Felix over the Policy Sync API.
+        - name: flexvol-driver
+          image: "{{ calico_flexvol_image_repo }}:{{ calico_flexvol_image_tag }}"
+          volumeMounts:
+          - name: flexvol-driver-host
+            mountPath: /host/driver
       containers:
         # Runs the flannel daemon to enable vxlan networking between
         # container hosts.
@@ -106,8 +122,9 @@ spec:
           securityContext:
             privileged: true
           volumeMounts:
-            #- name: "resolv"
-            #  mountPath: "/etc/resolv.conf"
+            # - mountPath: /run/xtables.lock
+            #   name: xtables-lock
+            #   readOnly: false
             - name: "run"
               mountPath: "/run"
             - name: "flannel-cfg"
@@ -129,6 +146,10 @@ spec:
             # Use Kubernetes API as the backing datastore.
             - name: DATASTORE_TYPE
               value: "kubernetes"
+            # TODO: only when ipam = host-local
+            # Configure route aggregation based on pod CIDR.
+            - name: USE_POD_CIDR
+              value: "true"
             # Wait for the datastore.
             - name: WAIT_FOR_DATASTORE
               value: "true"
@@ -144,14 +165,14 @@ spec:
             # Disable Calico BGP.  Calico is simply enforcing policy.
             - name: CALICO_NETWORKING_BACKEND
               value: "none"
-            # Set noderef for node controller.
-            - name: CALICO_K8S_NODE_REF
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
             # Cluster type to identify the deployment type
             - name: CLUSTER_TYPE
               value: "kubespray,canal"
+            # # Set noderef for node controller.
+            # - name: CALICO_K8S_NODE_REF
+            #   valueFrom:
+            #     fieldRef:
+            #       fieldPath: spec.nodeName
 
             # Period, in seconds, at which felix re-applies all iptables state
             - name: FELIX_IPTABLESREFRESHINTERVAL
@@ -169,8 +190,6 @@ spec:
               value: "true"
             - name: FELIX_PROMETHEUSMETRICSENABLED
               value: "true"
-            - name: FELIX_HEALTHENABLED
-              value: "true"
             - name: IP_AUTODETECTION_METHOD
               value: "{{ canal_autodetection_method }}"
 
@@ -184,6 +203,7 @@ spec:
 
           securityContext:
             privileged: true
+          
           # port 9099 ... healthz
           #      9091 ... prometheus
           livenessProbe:
@@ -204,37 +224,59 @@ spec:
             - mountPath: /lib/modules
               name: lib-modules
               readOnly: true
+            # TODO: do I need xtables-lock?
+            # - mountPath: /run/xtables.lock
+            #   name: xtables-lock
+            #   readOnly: false
+            - mountPath: /run
+              name: run
             - mountPath: /var/run/calico
               name: var-run-calico
               readOnly: false
             - mountPath: /var/lib/calico
               name: var-lib-calico
               readOnly: false
-        # This container installs the Calico CNI binaries
-        # and CNI network config file on each node.
-        - name: install-cni
-          image: "{{ calico_cni_image_repo }}:{{ calico_cni_image_tag }}"
-          command: ["/install-cni.sh"]
-          env:
-            # The CNI network config to install on each node.
-            - name: CNI_NETWORK_CONFIG
-              valueFrom:
-                configMapKeyRef:
-                  name: canal-config
-                  key: cni_network_config
-            # TODO: this needs to be adapted based on cni conf as .conf or .conflist file
-            - name: CNI_CONF_NAME
-              value: 10-calico.conflist
-            - name: KUBERNETES_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-          volumeMounts:
-            - mountPath: /host/opt/cni/bin
-              name: cni-bin-dir
-            - mountPath: /host/etc/cni/net.d
-              name: cni-net-dir
-  updateStrategy:
-    rollingUpdate:
-      maxUnavailable: {{ serial | default('20%') }}
-    type: RollingUpdate
+            - mountPath: /var/run/nodeagent
+              name: policysync
+      volumes:
+        # Used by calico/node.
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+        - name: var-run-calico
+          hostPath:
+            path: /var/run/calico
+        - name: var-lib-calico
+          hostPath:
+            path: /var/lib/calico
+        - name: xtables-lock
+          hostPath:
+            path: /run/xtables.lock
+            type: FileOrCreate
+        # Used by flannel daemon.
+        - name: flannel-cfg
+          configMap:
+            name: canal-config
+        # Used to install CNI.
+        - name: cni-bin-dir
+          hostPath:
+            path: /opt/cni/bin
+        - name: cni-net-dir
+          hostPath:
+            path: /etc/cni/net.d
+        - name: run
+          hostPath:
+            path: /run
+
+        # Used to create per-pod Unix Domain Sockets
+        - name: policysync
+          hostPath:
+            type: DirectoryOrCreate
+            path: /var/run/nodeagent
+        # Used to install Flex Volume Driver
+        # TODO: path should be templated?
+        - name: flexvol-driver-host
+          hostPath:
+            type: DirectoryOrCreate
+            # path: "kubelet_flexvolumes_plugins_dir/nodeagent-uds"
+            path: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds
